@@ -60,6 +60,14 @@ export default function AdminPanel() {
   // Query VPS status
   const { data: vpsStatus } = useQuery<VPSStatus>({
     queryKey: ['/api/admin/vps/status'],
+    queryFn: async () => {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch('/api/admin/vps/status', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch VPS status');
+      return response.json();
+    },
     enabled: !!adminUser,
     refetchInterval: 5000, // Poll every 5 seconds
   });

@@ -91,6 +91,17 @@ export class VPSIntegration {
       return metrics;
     } catch (error) {
       console.error('Error getting real-time metrics from VPS:', error);
+      
+      // Try to reconnect if connection seems broken
+      if (error.message.includes('Channel open failure')) {
+        console.log('SSH channel failure detected, attempting reconnection...');
+        try {
+          await this.reconnect();
+        } catch (reconnectError) {
+          console.error('Reconnection failed:', reconnectError);
+        }
+      }
+      
       return null;
     }
   }
@@ -106,8 +117,26 @@ export class VPSIntegration {
       return processes;
     } catch (error) {
       console.error('Error getting real-time processes from VPS:', error);
+      
+      // Try to reconnect if connection seems broken
+      if (error.message.includes('Channel open failure')) {
+        console.log('SSH channel failure detected, attempting reconnection...');
+        try {
+          await this.reconnect();
+        } catch (reconnectError) {
+          console.error('Reconnection failed:', reconnectError);
+        }
+      }
+      
       return [];
     }
+  }
+
+  private async reconnect(): Promise<void> {
+    console.log('Attempting to reconnect to VPS...');
+    await this.disconnect();
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+    await this.connect();
   }
 
   async discoverAndSyncServices(): Promise<void> {
