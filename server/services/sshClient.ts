@@ -100,31 +100,48 @@ export class SSHClient {
         const topResult = await this.executeCommand('top -bn1 | grep "Cpu(s)" | awk \'{print $2}\' | cut -d\'%\' -f1');
         cpuUsage = parseFloat(topResult) || 0;
 
-        // Get individual core usage - get all available cores
+        // Get individual core usage - use top command for real-time accurate data
         try {
-          const coreResult = await this.executeCommand('grep "^cpu[0-9]" /proc/stat');
+          const coreResult = await this.executeCommand('top -bn1 | grep "^%Cpu" | head -20');
           const coreLines = coreResult.split('\n').filter(line => line.trim());
-          coreUsages = coreLines.map(line => {
-            const parts = line.split(/\s+/);
-            if (parts.length >= 8) {
-              // Calculate CPU usage from /proc/stat values
-              const user = parseInt(parts[1]);
-              const nice = parseInt(parts[2]);
-              const system = parseInt(parts[3]);
-              const idle = parseInt(parts[4]);
-              const iowait = parseInt(parts[5]);
-              const irq = parseInt(parts[6]);
-              const softirq = parseInt(parts[7]);
-              
-              const totalIdle = idle + iowait;
-              const totalNonIdle = user + nice + system + irq + softirq;
-              const total = totalIdle + totalNonIdle;
-              
-              const usage = total > 0 ? ((totalNonIdle / total) * 100) : 0;
-              return Math.max(0, Math.min(100, usage));
-            }
-            return cpuUsage;
-          });
+          
+          if (coreLines.length > 0) {
+            coreUsages = coreLines.map(line => {
+              // Parse format like: %Cpu0  :  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+              const match = line.match(/(\d+\.\d+)\s+id/);
+              if (match) {
+                const idlePercent = parseFloat(match[1]);
+                return Math.max(0, Math.min(100, 100 - idlePercent));
+              }
+              return 0;
+            });
+          }
+          
+          // If no per-core data, fall back to /proc/stat method
+          if (coreUsages.length === 0) {
+            const statResult = await this.executeCommand('grep "^cpu[0-9]" /proc/stat');
+            const statLines = statResult.split('\n').filter(line => line.trim());
+            coreUsages = statLines.map(line => {
+              const parts = line.split(/\s+/);
+              if (parts.length >= 8) {
+                const user = parseInt(parts[1]);
+                const nice = parseInt(parts[2]); 
+                const system = parseInt(parts[3]);
+                const idle = parseInt(parts[4]);
+                const iowait = parseInt(parts[5]);
+                const irq = parseInt(parts[6]);
+                const softirq = parseInt(parts[7]);
+                
+                const totalIdle = idle + iowait;
+                const totalNonIdle = user + nice + system + irq + softirq;
+                const total = totalIdle + totalNonIdle;
+                
+                const usage = total > 0 ? ((totalNonIdle / total) * 100) : 0;
+                return Math.max(0, Math.min(100, usage));
+              }
+              return 0;
+            });
+          }
         } catch (coreError) {
           console.log('Failed to get individual core usage:', coreError);
           // Get core count and create array with main CPU usage
@@ -149,8 +166,13 @@ export class SSHClient {
 
       // Try getting memory info with simple commands
       try {
-        const memResult = await this.executeCommand('free -m | grep Mem');
-        memInfo = this.parseMemoryInfo(`Mem: ${memResult}`);
+        const memResult = await this.executeCommand('free -m');
+        const memLines = memResult.split('\n').find(line => line.includes('Mem:'));
+        if (memLines) {
+          memInfo = this.parseMemoryInfo(memLines);
+        } else {
+          throw new Error('Memory info not found in free output');
+        }
       } catch (memError) {
         console.log('Unable to get memory metrics, using defaults');
         memInfo = {
@@ -401,27 +423,27 @@ export class SSHClient {
   // Parses memory information from 'free -m' command output.
   private parseMemoryInfo(result: string): { memoryTotal: number, memoryUsed: number, memoryCache: number, memoryFree: number } {
     try {
-      const lines = result.split('\n');
-      // Expecting at least two lines: header and memory stats.
-      if (lines.length < 2) return { memoryTotal: 0, memoryUsed: 0, memoryCache: 0, memoryFree: 0 };
-
-      // Split the memory line by whitespace.
-      const memParts = lines[1].trim().split(/\s+/);
-      // Expecting at least 6 columns: Mem, total, used, free, shared, cache, available.
-      if (memParts.length < 4) return { memoryTotal: 0, memoryUsed: 0, memoryCache: 0, memoryFree: 0 };
+      // Parse the Mem: line from free -m output
+      // Format: Mem:     total      used      free    shared  buff/cache   available
+      const memParts = result.trim().split(/\s+/);
+      
+      if (memParts.length < 7) {
+        console.log('Unexpected free -m format:', result);
+        return { memoryTotal: 0, memoryUsed: 0, memoryCache: 0, memoryFree: 0 };
+      }
 
       const total = parseInt(memParts[1]); // Total memory
-      const used = parseInt(memParts[2]); // Used memory
+      const used = parseInt(memParts[2]); // Used memory  
       const free = parseInt(memParts[3]); // Free memory
-      // Cache might be in different positions or combined with buffers. Assuming it's the 6th column if available.
-      const cache = memParts.length > 5 ? parseInt(memParts[5]) : 0;
+      const cache = parseInt(memParts[5]) || 0; // Buffer/cache
+      const available = parseInt(memParts[6]) || free; // Available memory
 
       // Convert MB to GB for consistency.
       return {
         memoryTotal: total / 1024,
         memoryUsed: used / 1024,
         memoryCache: cache / 1024,
-        memoryFree: free / 1024,
+        memoryFree: available / 1024, // Use available memory instead of just free
       };
     } catch (e) {
       console.error("Error parsing memory info:", e);
