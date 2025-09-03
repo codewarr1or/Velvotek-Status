@@ -56,43 +56,47 @@ export default function ResourceMonitoring({ systemMetrics }: ResourceMonitoring
       
       {/* CPU Monitoring */}
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <div className="text-sm font-semibold text-foreground">
-            <div>CPU Usage</div>
-            <div className="text-[10px] text-muted-foreground">{coreUsages.length} Cores @ {systemMetrics.cpuFrequency.toFixed(2)} GHz Base</div>
+        <div className="flex justify-between items-center mb-2 overflow-hidden">
+          <div className="text-sm font-semibold text-foreground min-w-0 flex-1">
+            <div className="truncate">CPU Usage</div>
+            <div className="text-[10px] text-muted-foreground truncate">{coreUsages.length} Cores @ {systemMetrics.cpuFrequency.toFixed(1)}GHz</div>
           </div>
-          <div className="text-right text-xs" data-testid="cpu-frequency">
+          <div className="text-right text-xs flex-shrink-0 ml-2" data-testid="cpu-frequency">
             <div className="text-primary font-medium">{systemMetrics.cpuUsage.toFixed(1)}%</div>
-            <div className="text-[10px] text-accent">Avg Load</div>
+            <div className="text-[10px] text-accent">Load</div>
           </div>
         </div>
         <div className="text-xs text-primary mb-3" data-testid="cpu-usage-bar">
-          <div className="flex items-center overflow-hidden">
-            <span className="min-w-0 flex-shrink-0 text-muted-foreground mr-2">CPU</span>
-            <span className="ascii-progress flex-1 mx-2 min-w-0">
-              <span className="hidden sm:inline">{generateProgressBar(systemMetrics.cpuUsage, 25)}</span>
-              <span className="sm:hidden">{generateResponsiveProgressBar(systemMetrics.cpuUsage)}</span>
-            </span>
-            <span className="flex-shrink-0 text-right ml-2 w-12">{systemMetrics.cpuUsage.toFixed(1)}%</span>
+          <div className="flex items-center overflow-hidden w-full">
+            <span className="flex-shrink-0 text-muted-foreground mr-1 w-8">CPU</span>
+            <div className="flex-1 mx-1 min-w-0 overflow-hidden">
+              <span className="ascii-progress text-primary truncate">
+                <span className="hidden sm:inline">{generateProgressBar(systemMetrics.cpuUsage, 18)}</span>
+                <span className="sm:hidden">{generateResponsiveProgressBar(systemMetrics.cpuUsage)}</span>
+              </span>
+            </div>
+            <span className="flex-shrink-0 text-right ml-1 w-12">{systemMetrics.cpuUsage.toFixed(1)}%</span>
           </div>
         </div>
-        <div className="space-y-1 text-xs">
+        <div className="space-y-1 text-xs overflow-hidden">
           {coreUsages.map((usage, index) => {
             // Calculate individual core frequency based on load (simulated)
             const coreFreq = systemMetrics.cpuFrequency * (0.8 + (usage / 100) * 0.4);
             return (
-              <div key={index} className="flex items-center overflow-hidden">
-                <div className="min-w-0 flex-shrink-0 text-muted-foreground mr-2 w-12">
+              <div key={index} className="flex items-center overflow-hidden w-full">
+                <div className="flex-shrink-0 text-muted-foreground mr-1 w-8">
                   <div className="text-xs font-medium">C{index}</div>
-                  <div className="text-[10px] text-accent">{coreFreq.toFixed(2)}GHz</div>
+                  <div className="text-[9px] text-accent truncate">{coreFreq.toFixed(1)}</div>
                 </div>
-                <span className="ascii-progress text-primary flex-1 mx-2 min-w-0">
-                  <span className="hidden sm:inline">{generateProgressBar(usage, 25)}</span>
-                  <span className="sm:hidden">{generateResponsiveProgressBar(usage)}</span>
-                </span>
-                <div className="flex-shrink-0 text-right ml-2 w-16">
-                  <div className="text-primary font-medium">{usage.toFixed(0)}%</div>
-                  <div className="text-[10px] text-muted-foreground">{(usage * 0.01 * coreFreq).toFixed(1)}GHz</div>
+                <div className="flex-1 mx-1 min-w-0 overflow-hidden">
+                  <div className="ascii-progress text-primary truncate">
+                    <span className="hidden sm:inline">{generateProgressBar(usage, 18)}</span>
+                    <span className="sm:hidden">{generateResponsiveProgressBar(usage)}</span>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 text-right ml-1 w-12">
+                  <div className="text-primary font-medium text-xs">{usage.toFixed(0)}%</div>
+                  <div className="text-[9px] text-muted-foreground">{(usage * 0.01 * coreFreq).toFixed(1)}</div>
                 </div>
               </div>
             );
