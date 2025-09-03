@@ -29,16 +29,22 @@ export default function ResourceMonitoring({ systemMetrics }: ResourceMonitoring
   if (!systemMetrics) {
     return (
       <section className="terminal-card" data-testid="resource-monitoring">
-        <h2 className="text-lg font-bold text-primary mb-4">
-          <span className="hidden sm:inline">╭─┐²resources┌──────────────────────────────────────────────────────╮</span>
-          <span className="sm:hidden">╭─┐²resources┌──────────╮</span>
+        <h2 className="text-lg font-bold text-primary mb-4 overflow-hidden">
+          <div className="w-full overflow-hidden">
+            <span className="hidden lg:inline-block">╭─┐²resources┌──────────────────────────────────╮</span>
+            <span className="hidden md:inline-block lg:hidden">╭─┐²resources┌────────────────╮</span>
+            <span className="md:hidden">╭─┐²resources┌────╮</span>
+          </div>
         </h2>
         <div className="text-center text-muted-foreground py-8">
           Connecting to system monitoring...
         </div>
-        <div className="text-right text-xs text-muted-foreground mt-4">
-          <span className="hidden sm:inline">╰──────────────────────────────────────────────────────────────────╯</span>
-          <span className="sm:hidden">╰──────────────────╯</span>
+        <div className="text-right text-xs text-muted-foreground mt-4 overflow-hidden">
+          <div className="w-full overflow-hidden">
+            <span className="hidden lg:inline-block">╰────────────────────────────────────────╯</span>
+            <span className="hidden md:inline-block lg:hidden">╰────────────────────╯</span>
+            <span className="md:hidden">╰────────╯</span>
+          </div>
         </div>
       </section>
     );
@@ -49,9 +55,12 @@ export default function ResourceMonitoring({ systemMetrics }: ResourceMonitoring
 
   return (
     <section className="terminal-card" data-testid="resource-monitoring">
-      <h2 className="text-lg font-bold text-primary mb-4">
-        <span className="hidden sm:inline">╭─┐²resources┌──────────────────────────────────────────────────────╮</span>
-        <span className="sm:hidden">╭─┐²resources┌──────────╮</span>
+      <h2 className="text-lg font-bold text-primary mb-4 overflow-hidden">
+        <div className="w-full overflow-hidden">
+          <span className="hidden lg:inline-block">╭─┐²resources┌──────────────────────────────────╮</span>
+          <span className="hidden md:inline-block lg:hidden">╭─┐²resources┌────────────────╮</span>
+          <span className="md:hidden">╭─┐²resources┌────╮</span>
+        </div>
       </h2>
       
       {/* CPU Monitoring */}
@@ -201,9 +210,12 @@ export default function ResourceMonitoring({ systemMetrics }: ResourceMonitoring
         </div>
       </div>
       
-      <div className="text-right text-xs text-muted-foreground mt-4">
-        <span className="hidden sm:inline">╰──────────────────────────────────────────────────────────────────╯</span>
-        <span className="sm:hidden">╰──────────────────╯</span>
+      <div className="text-right text-xs text-muted-foreground mt-4 overflow-hidden">
+        <div className="w-full overflow-hidden">
+          <span className="hidden lg:inline-block">╰────────────────────────────────────────╯</span>
+          <span className="hidden md:inline-block lg:hidden">╰────────────────────╯</span>
+          <span className="md:hidden">╰────────╯</span>
+        </div>
       </div>
     </section>
   );

@@ -104,6 +104,8 @@
   }
   
   .terminal-card {
-    @apply bg-card border border-border rounded-lg p-6 terminal-border;
+    @apply bg-card border border-border rounded-lg p-4 terminal-border overflow-hidden;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 }

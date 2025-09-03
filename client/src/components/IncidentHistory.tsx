@@ -45,8 +45,12 @@ export default function IncidentHistory({ incidents }: IncidentHistoryProps) {
 
   return (
     <section className="terminal-card" data-testid="incident-history">
-      <h2 className="text-lg font-bold text-primary mb-4">
-        ╭─┐³incidents┌─────────────────────────────────────────────────────╮
+      <h2 className="text-lg font-bold text-primary mb-4 overflow-hidden">
+        <div className="w-full overflow-hidden">
+          <span className="hidden lg:inline-block">╭─┐³incidents┌─────────────────────────────────────────────────────╮</span>
+          <span className="hidden md:inline-block lg:hidden">╭─┐³incidents┌──────────────────╮</span>
+          <span className="md:hidden">╭─┐³incidents┌────╮</span>
+        </div>
       </h2>
       
       {/* Current Incidents */}
@@ -117,8 +121,12 @@ export default function IncidentHistory({ incidents }: IncidentHistoryProps) {
         )}
       </div>
       
-      <div className="text-right text-xs text-muted-foreground mt-4">
-        ╰─────────────────────────────────────────────────────────────────╯
+      <div className="text-right text-xs text-muted-foreground mt-4 overflow-hidden">
+        <div className="w-full overflow-hidden">
+          <span className="hidden lg:inline-block">╰─────────────────────────────────────────────────────────────────╯</span>
+          <span className="hidden md:inline-block lg:hidden">╰────────────────────────────╯</span>
+          <span className="md:hidden">╰──────────╯</span>
+        </div>
       </div>
     </section>
   );
