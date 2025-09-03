@@ -41,7 +41,8 @@ export default function ServiceDetails({ services, processes }: ServiceDetailsPr
   return (
     <section className="terminal-card" data-testid="service-details">
       <h2 className="text-lg font-bold text-primary mb-4">
-        ╭─┐⁴services┌┐detailed┌────────────────────────────────────────────────────────────────────────────────────────────────╮
+        <span className="hidden md:inline">╭─┐⁴services┌┐detailed┌────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+        <span className="md:hidden">╭─┐⁴services┌────────────────╮</span>
       </h2>
       
       <div className="overflow-x-auto">

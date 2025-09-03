@@ -319,8 +319,8 @@ export class SSHClient {
 
           const serviceName = parts[0].replace('.service', ''); // Extract service name without extension
 
-          // Filter out common system services that are not typically user-managed applications
-          const systemServices = ['systemd', 'dbus', 'networkd', 'resolved', 'logind', 'udev', 'cron', 'containerd', 'docker', 'sshd'];
+          // Filter out only core low-level system services, keep important services like SSH, nginx, apache, etc.
+          const systemServices = ['systemd', 'dbus', 'networkd', 'resolved', 'logind', 'udev'];
           if (systemServices.some(sys => serviceName.includes(sys))) {
             continue;
           }
