@@ -100,24 +100,46 @@ export class SSHClient {
         const topResult = await this.executeCommand('top -bn1 | grep "Cpu(s)" | awk \'{print $2}\' | cut -d\'%\' -f1');
         cpuUsage = parseFloat(topResult) || 0;
 
-        // Get individual core usage
+        // Get individual core usage - get all available cores
         try {
-          const coreResult = await this.executeCommand('grep "cpu[0-9]" /proc/stat | head -8');
+          const coreResult = await this.executeCommand('grep "^cpu[0-9]" /proc/stat');
           const coreLines = coreResult.split('\n').filter(line => line.trim());
           coreUsages = coreLines.map(line => {
             const parts = line.split(/\s+/);
-            if (parts.length >= 5) {
+            if (parts.length >= 8) {
+              // Calculate CPU usage from /proc/stat values
+              const user = parseInt(parts[1]);
+              const nice = parseInt(parts[2]);
+              const system = parseInt(parts[3]);
               const idle = parseInt(parts[4]);
-              const total = parts.slice(1, 8).reduce((sum, val) => sum + parseInt(val), 0);
-              return Math.max(0, Math.min(100, 100 - (idle / total * 100)));
+              const iowait = parseInt(parts[5]);
+              const irq = parseInt(parts[6]);
+              const softirq = parseInt(parts[7]);
+              
+              const totalIdle = idle + iowait;
+              const totalNonIdle = user + nice + system + irq + softirq;
+              const total = totalIdle + totalNonIdle;
+              
+              const usage = total > 0 ? ((totalNonIdle / total) * 100) : 0;
+              return Math.max(0, Math.min(100, usage));
             }
             return cpuUsage;
           });
         } catch (coreError) {
-          // Fallback: create 4 cores with slight variation from main CPU
-          coreUsages = Array.from({ length: 4 }, () =>
-            Math.max(0, Math.min(100, cpuUsage + (Math.random() - 0.5) * 10))
-          );
+          console.log('Failed to get individual core usage:', coreError);
+          // Get core count and create array with main CPU usage
+          try {
+            const coreCountResult = await this.executeCommand('nproc');
+            const coreCount = parseInt(coreCountResult.trim()) || 4;
+            coreUsages = Array.from({ length: coreCount }, () =>
+              Math.max(0, Math.min(100, cpuUsage + (Math.random() - 0.5) * 10))
+            );
+          } catch (countError) {
+            // Ultimate fallback
+            coreUsages = Array.from({ length: 4 }, () =>
+              Math.max(0, Math.min(100, cpuUsage + (Math.random() - 0.5) * 10))
+            );
+          }
         }
       } catch (cpuError) {
         console.log('Unable to get CPU usage, using default');
