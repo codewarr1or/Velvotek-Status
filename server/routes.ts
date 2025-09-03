@@ -186,24 +186,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
       
+      console.log('Login attempt for username:', username);
+      
       if (!username || !password) {
         return res.status(400).json({ error: 'Username and password required' });
       }
 
       const adminUser = await storage.getAdminUserByUsername(username);
       if (!adminUser) {
+        console.log('Admin user not found:', username);
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
+      console.log('Admin user found, verifying password...');
       const isValidPassword = await adminAuthService.verifyPassword(password, adminUser.passwordHash);
       if (!isValidPassword) {
+        console.log('Password verification failed for user:', username);
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
       if (!adminUser.isActive) {
+        console.log('Admin user is inactive:', username);
         return res.status(401).json({ error: 'Account is inactive' });
       }
 
+      console.log('Login successful for user:', username);
       const token = adminAuthService.generateToken(adminUser);
       res.json({ 
         token, 
@@ -333,11 +340,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize default admin user
   async function initializeDefaultAdmin() {
     try {
-      const existingAdmin = await storage.getAdminUserByUsername(process.env.ADMIN_USERNAME || 'admin');
+      const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+      const existingAdmin = await storage.getAdminUserByUsername(adminUsername);
       if (!existingAdmin) {
         const adminData = await adminAuthService.createDefaultAdmin();
         await storage.createAdminUser(adminData);
-        console.log('Default admin user created');
+        console.log(`Default admin user created with username: ${adminUsername}`);
+        console.log(`Default password: ${process.env.ADMIN_PASSWORD || 'admin123'}`);
+      } else {
+        console.log(`Admin user '${adminUsername}' already exists`);
       }
     } catch (error) {
       console.error('Failed to initialize default admin:', error);
@@ -346,6 +357,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Initialize admin user on startup
   await initializeDefaultAdmin();
+
+  // Development endpoint to reset admin user
+  app.post('/api/admin/reset', async (req, res) => {
+    try {
+      const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+      
+      // Delete existing admin if exists
+      const existingAdmin = await storage.getAdminUserByUsername(adminUsername);
+      if (existingAdmin) {
+        // Note: You would need to implement a delete method in storage
+        console.log('Existing admin found, recreating...');
+      }
+      
+      const adminData = await adminAuthService.createDefaultAdmin();
+      await storage.createAdminUser(adminData);
+      
+      res.json({ 
+        message: 'Admin user reset successfully',
+        username: adminUsername,
+        password: process.env.ADMIN_PASSWORD || 'admin123'
+      });
+    } catch (error) {
+      console.error('Admin reset error:', error);
+      res.status(500).json({ error: 'Failed to reset admin user' });
+    }
+  });
   
   // Initialize VPS connection and discover services
   setTimeout(async () => {

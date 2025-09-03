@@ -43,12 +43,10 @@ export class AdminAuthService {
   }
 
   async createDefaultAdmin(): Promise<InsertAdminUser> {
-    const adminUsername = process.env.ADMIN_USERNAME;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminUsername = process.env.ADMIN_USERNAME || 'admin';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
 
-    if (!adminUsername || !adminPassword) {
-      throw new Error('ADMIN_USERNAME and ADMIN_PASSWORD environment variables are required');
-    }
+    console.log('Creating default admin with username:', adminUsername);
 
     const passwordHash = await this.hashPassword(adminPassword);
 
