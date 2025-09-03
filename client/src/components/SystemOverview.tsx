@@ -36,7 +36,11 @@ export default function SystemOverview({ services, overallStatus }: SystemOvervi
     <section className="terminal-card" data-testid="system-overview">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold text-primary">
-          ╭─┐¹system┌──┐overview┌┐status┌─────────────────────────────────────────────────╮
+          <div className="w-full overflow-hidden">
+            <span className="hidden lg:inline-block">╭─┐¹system┌──┐overview┌┐status┌─────────────────────────────────────────────────╮</span>
+            <span className="hidden md:inline-block lg:hidden">╭─┐¹system┌──┐overview┌─────────────────╮</span>
+            <span className="md:hidden">╭─┐¹system┌────╮</span>
+          </div>
         </h2>
         <div className="text-sm text-muted-foreground">
           Auto-refresh: <span className="text-secondary">ON</span>
@@ -77,7 +81,11 @@ export default function SystemOverview({ services, overallStatus }: SystemOvervi
       </div>
       
       <div className="text-right text-xs text-muted-foreground mt-4">
-        ╰─────────────────────────────────────────────────────────────────────────────╯
+        <div className="w-full overflow-hidden">
+          <span className="hidden lg:inline-block">╰─────────────────────────────────────────────────────────────────────────────╯</span>
+          <span className="hidden md:inline-block lg:hidden">╰─────────────────────────────────────╯</span>
+          <span className="md:hidden">╰──────────────╯</span>
+        </div>
       </div>
     </section>
   );

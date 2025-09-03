@@ -41,8 +41,11 @@ export default function ServiceDetails({ services, processes }: ServiceDetailsPr
   return (
     <section className="terminal-card" data-testid="service-details">
       <h2 className="text-lg font-bold text-primary mb-4">
-        <span className="hidden md:inline">╭─┐⁴services┌┐detailed┌────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
-        <span className="md:hidden">╭─┐⁴services┌────────────────╮</span>
+        <div className="w-full overflow-hidden">
+          <span className="hidden lg:inline-block">╭─┐⁴services┌┐detailed┌────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+          <span className="hidden md:inline-block lg:hidden">╭─┐⁴services┌┐detailed┌──────────────────╮</span>
+          <span className="md:hidden">╭─┐⁴services┌────╮</span>
+        </div>
       </h2>
       
       <div className="overflow-x-auto">
@@ -140,7 +143,11 @@ export default function ServiceDetails({ services, processes }: ServiceDetailsPr
       )}
       
       <div className="text-right text-xs text-muted-foreground mt-4">
-        ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+        <div className="w-full overflow-hidden">
+          <span className="hidden lg:inline-block">╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span>
+          <span className="hidden md:inline-block lg:hidden">╰──────────────────────────────────────╯</span>
+          <span className="md:hidden">╰──────────╯</span>
+        </div>
       </div>
     </section>
   );

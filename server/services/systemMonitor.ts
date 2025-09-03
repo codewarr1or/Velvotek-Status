@@ -32,10 +32,10 @@ class SystemMonitor {
       this.generateSystemData();
     }, 5000);
 
-    // Update service status every 30 seconds
+    // Update service status every 5 seconds
     setInterval(() => {
       this.updateServiceStatus();
-    }, 30000);
+    }, 5000);
   }
 
   private async generateSystemData() {

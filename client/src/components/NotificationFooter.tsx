@@ -17,7 +17,11 @@ export default function NotificationFooter() {
   return (
     <section className="terminal-card" data-testid="notification-footer">
       <h2 className="text-lg font-bold text-primary mb-4">
-        ╭─┐⁵notifications┌─────────────────────────────────────────────────────────────────────────────────────────────────╮
+        <div className="w-full overflow-hidden">
+          <span className="hidden lg:inline-block">╭─┐⁵notifications┌─────────────────────────────────────────────────────────────────────────────────────────────────╮</span>
+          <span className="hidden md:inline-block lg:hidden">╭─┐⁵notifications┌─────────────────────────────────────╮</span>
+          <span className="md:hidden">╭─┐⁵notifications┌────╮</span>
+        </div>
       </h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -71,7 +75,11 @@ export default function NotificationFooter() {
       </div>
       
       <div className="text-right text-xs text-muted-foreground mt-4">
-        ╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+        <div className="w-full overflow-hidden">
+          <span className="hidden lg:inline-block">╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯</span>
+          <span className="hidden md:inline-block lg:hidden">╰───────────────────────────────────────────╯</span>
+          <span className="md:hidden">╰──────────────╯</span>
+        </div>
       </div>
     </section>
   );
