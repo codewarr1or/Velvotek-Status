@@ -5,7 +5,8 @@ interface ResourceMonitoringProps {
 }
 
 const generateProgressBar = (percentage: number, maxWidth: number = 50) => {
-  const filledBars = Math.round((percentage / 100) * maxWidth);
+  const clampedPercentage = Math.min(100, Math.max(0, percentage));
+  const filledBars = Math.round((clampedPercentage / 100) * maxWidth);
   return '█'.repeat(filledBars) + '░'.repeat(maxWidth - filledBars);
 };
 
@@ -51,13 +52,21 @@ export default function ResourceMonitoring({ systemMetrics }: ResourceMonitoring
             {systemMetrics.cpuFrequency.toFixed(1)} GHz
           </span>
         </div>
-        <div className="ascii-progress text-xs text-primary mb-2" data-testid="cpu-usage-bar">
-          CPU {generateProgressBar(systemMetrics.cpuUsage, 80)} {systemMetrics.cpuUsage.toFixed(1)}%
+        <div className="text-xs text-primary mb-3" data-testid="cpu-usage-bar">
+          <div className="flex items-center overflow-hidden">
+            <span className="w-8 text-muted-foreground">CPU</span>
+            <span className="ascii-progress flex-1 mx-2">{generateProgressBar(systemMetrics.cpuUsage, 35)}</span>
+            <span className="w-12 text-right">{systemMetrics.cpuUsage.toFixed(1)}%</span>
+          </div>
         </div>
-        <div className="grid grid-cols-4 gap-2 text-xs">
-          {coreUsages.slice(0, 8).map((usage, index) => (
-            <div key={index} className="text-muted-foreground">
-              C{index} <span className="text-primary">▄▄▄▄▄▄▄▄▄▄</span> {usage.toFixed(0)}%
+        <div className="space-y-1 text-xs">
+          {coreUsages.map((usage, index) => (
+            <div key={index} className="flex items-center overflow-hidden">
+              <span className="w-8 text-muted-foreground">C{index}</span>
+              <span className="ascii-progress text-primary flex-1 mx-2">
+                {generateProgressBar(usage, 35)}
+              </span>
+              <span className="w-12 text-right text-primary">{usage.toFixed(0)}%</span>
             </div>
           ))}
         </div>
@@ -76,24 +85,27 @@ export default function ResourceMonitoring({ systemMetrics }: ResourceMonitoring
             {formatBytes(systemMetrics.memoryTotal * 1024 * 1024 * 1024)}
           </span>
         </div>
-        <div className="space-y-1 text-xs">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Used</span>
-            <span className="ascii-progress text-primary" data-testid="memory-used">
-              {generateProgressBar((systemMetrics.memoryUsed / systemMetrics.memoryTotal) * 100, 40)} {formatBytes(systemMetrics.memoryUsed * 1024 * 1024 * 1024)}
+        <div className="space-y-2 text-xs">
+          <div className="flex items-center overflow-hidden">
+            <span className="text-muted-foreground w-12">Used</span>
+            <span className="ascii-progress text-primary flex-1 mx-2" data-testid="memory-used">
+              {generateProgressBar((systemMetrics.memoryUsed / systemMetrics.memoryTotal) * 100, 25)}
             </span>
+            <span className="text-right w-16">{formatBytes(systemMetrics.memoryUsed * 1024 * 1024 * 1024)}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Cache</span>
-            <span className="ascii-progress text-secondary" data-testid="memory-cache">
-              {generateProgressBar((systemMetrics.memoryCache / systemMetrics.memoryTotal) * 100, 40)} {formatBytes(systemMetrics.memoryCache * 1024 * 1024 * 1024)}
+          <div className="flex items-center overflow-hidden">
+            <span className="text-muted-foreground w-12">Cache</span>
+            <span className="ascii-progress text-secondary flex-1 mx-2" data-testid="memory-cache">
+              {generateProgressBar((systemMetrics.memoryCache / systemMetrics.memoryTotal) * 100, 25)}
             </span>
+            <span className="text-right w-16">{formatBytes(systemMetrics.memoryCache * 1024 * 1024 * 1024)}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Free</span>
-            <span className="ascii-progress text-muted-foreground" data-testid="memory-free">
-              {generateProgressBar((systemMetrics.memoryFree / systemMetrics.memoryTotal) * 100, 40)} {formatBytes(systemMetrics.memoryFree * 1024 * 1024 * 1024)}
+          <div className="flex items-center overflow-hidden">
+            <span className="text-muted-foreground w-12">Free</span>
+            <span className="ascii-progress text-muted-foreground flex-1 mx-2" data-testid="memory-free">
+              {generateProgressBar((systemMetrics.memoryFree / systemMetrics.memoryTotal) * 100, 25)}
             </span>
+            <span className="text-right w-16">{formatBytes(systemMetrics.memoryFree * 1024 * 1024 * 1024)}</span>
           </div>
         </div>
       </div>
@@ -104,24 +116,24 @@ export default function ResourceMonitoring({ systemMetrics }: ResourceMonitoring
           <span className="text-sm font-semibold text-foreground">Network ({systemMetrics.networkInterface})</span>
           <span className="text-xs text-accent" data-testid="network-interface">Active</span>
         </div>
-        <div className="space-y-1 text-xs">
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">▼ Download</span>
-            <span className="text-primary" data-testid="network-download">
+        <div className="space-y-2 text-xs">
+          <div className="flex items-center overflow-hidden">
+            <span className="text-muted-foreground w-16">▼ Down</span>
+            <span className="ascii-progress text-primary flex-1 mx-2">
+              {generateProgressBar(Math.min(systemMetrics.networkDownload / 1000000, 1) * 100, 25)}
+            </span>
+            <span className="text-primary text-right w-20" data-testid="network-download">
               {formatBytes(systemMetrics.networkDownload)}/s
             </span>
           </div>
-          <div className="ascii-progress text-primary">
-            {generateProgressBar(Math.min(systemMetrics.networkDownload / 1000000, 1) * 100, 60)}
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">▲ Upload</span>
-            <span className="text-secondary" data-testid="network-upload">
+          <div className="flex items-center overflow-hidden">
+            <span className="text-muted-foreground w-16">▲ Up</span>
+            <span className="ascii-progress text-secondary flex-1 mx-2">
+              {generateProgressBar(Math.min(systemMetrics.networkUpload / 1000000, 1) * 100, 25)}
+            </span>
+            <span className="text-secondary text-right w-20" data-testid="network-upload">
               {formatBytes(systemMetrics.networkUpload)}/s
             </span>
-          </div>
-          <div className="ascii-progress text-secondary">
-            {generateProgressBar(Math.min(systemMetrics.networkUpload / 1000000, 1) * 100, 60)}
           </div>
         </div>
       </div>
