@@ -61,7 +61,7 @@ export default function AdminPanel() {
   const { data: vpsStatus } = useQuery<VPSStatus>({
     queryKey: ['/api/admin/vps/status'],
     enabled: !!adminUser,
-    refetchInterval: 10000, // Poll every 10 seconds
+    refetchInterval: 5000, // Poll every 5 seconds
   });
 
   // Query services
@@ -161,7 +161,7 @@ export default function AdminPanel() {
     const vpsInterval = setInterval(() => {
       fetchVpsStatus();
       fetchVpsProcesses();
-    }, 10000);
+    }, 5000);
 
     return () => clearInterval(vpsInterval);
   }, []);
