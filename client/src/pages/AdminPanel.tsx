@@ -70,6 +70,24 @@ export default function AdminPanel() {
     enabled: !!adminUser,
   });
 
+  // Query VPS processes
+  const { data: vpsProcessesQuery } = useQuery({
+    queryKey: ['/api/admin/vps/processes'],
+    queryFn: async () => {
+      const token = localStorage.getItem('adminToken');
+      const response = await fetch('/api/admin/vps/processes?limit=50', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!response.ok) throw new Error('Failed to fetch VPS processes');
+      return response.json();
+    },
+    enabled: !!adminUser,
+    refetchInterval: 5000,
+  });
+
+  // Use React Query data if available, fallback to local state
+  const effectiveVpsProcesses = vpsProcessesQuery || vpsProcesses;
+
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('adminUser');
@@ -116,28 +134,10 @@ export default function AdminPanel() {
     }
   };
 
-  // Fetch VPS status and processes
+  // Fetch VPS processes
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     if (!token) return;
-
-    const fetchVpsStatus = async () => {
-      try {
-        const response = await fetch('/api/admin/vps/status', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const status = await response.json();
-          // Ensure status is of type VPSStatus
-          setVpsStatus(status as VPSStatus); 
-        } else {
-          setVpsStatus({ connected: false }); // Set to disconnected if fetch fails
-        }
-      } catch (error) {
-        console.error('Failed to fetch VPS status:', error);
-        setVpsStatus({ connected: false }); // Set to disconnected on error
-      }
-    };
 
     const fetchVpsProcesses = async () => {
       try {
@@ -148,20 +148,16 @@ export default function AdminPanel() {
           const data = await response.json();
           setVpsProcesses(data);
         } else {
-          setVpsProcesses({ connectionActive: false }); // Indicate connection is not active
+          setVpsProcesses({ connectionActive: false });
         }
       } catch (error) {
         console.error('Failed to fetch VPS processes:', error);
-        setVpsProcesses({ connectionActive: false }); // Indicate connection is not active on error
+        setVpsProcesses({ connectionActive: false });
       }
     };
 
-    fetchVpsStatus();
     fetchVpsProcesses();
-    const vpsInterval = setInterval(() => {
-      fetchVpsStatus();
-      fetchVpsProcesses();
-    }, 5000);
+    const vpsInterval = setInterval(fetchVpsProcesses, 5000);
 
     return () => clearInterval(vpsInterval);
   }, []);
@@ -360,9 +356,9 @@ export default function AdminPanel() {
             <CardTitle className="flex items-center space-x-2 font-mono">
               <Activity className="h-5 w-5" />
               <span>VPS Processes</span>
-              {vpsProcesses && (
+              {effectiveVpsProcesses && (
                 <Badge variant="outline" className="ml-2">
-                  {vpsProcesses.totalProcesses} total
+                  {effectiveVpsProcesses.totalProcesses} total
                 </Badge>
               )}
             </CardTitle>
@@ -371,16 +367,16 @@ export default function AdminPanel() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {vpsProcesses?.connectionActive ? (
+            {effectiveVpsProcesses?.connectionActive ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <h4 className="text-sm font-semibold mb-2 flex items-center">
                       <Cog className="h-4 w-4 mr-2" />
-                      Active Services ({vpsProcesses.services?.length || 0})
+                      Active Services ({effectiveVpsProcesses.services?.length || 0})
                     </h4>
                     <div className="space-y-1 max-h-32 overflow-y-auto">
-                      {vpsProcesses.services?.slice(0, 8).map((service: any) => (
+                      {effectiveVpsProcesses.services?.slice(0, 8).map((service: any) => (
                         <div key={service.id} className="flex items-center justify-between text-xs bg-muted/50 rounded px-2 py-1">
                           <span className="font-mono">{service.name}</span>
                           <Badge 
@@ -400,7 +396,7 @@ export default function AdminPanel() {
                       Top Processes by CPU
                     </h4>
                     <div className="space-y-1 max-h-32 overflow-y-auto">
-                      {vpsProcesses.processes?.slice(0, 8).map((process: any) => (
+                      {effectiveVpsProcesses.processes?.slice(0, 8).map((process: any) => (
                         <div key={process.pid} className="flex items-center justify-between text-xs bg-muted/50 rounded px-2 py-1">
                           <div className="flex items-center space-x-2">
                             <span className="text-muted-foreground w-12">{process.pid}</span>
