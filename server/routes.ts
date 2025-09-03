@@ -233,6 +233,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(status);
   });
 
+  // Get all VPS processes and services
+  app.get('/api/admin/vps/processes', requireAuth, async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 100;
+      const processes = await vpsIntegration.getRealTimeProcesses();
+      const services = await storage.getAllServices();
+      
+      res.json({
+        processes: processes.slice(0, limit),
+        services,
+        totalProcesses: processes.length,
+        connectionActive: vpsIntegration.isConnectionActive()
+      });
+    } catch (error) {
+      console.error('Error fetching VPS processes:', error);
+      res.status(500).json({ error: 'Failed to fetch VPS processes' });
+    }
+  });
+
   // Service management
   app.post('/api/admin/services/:serviceName/:action', requireAuth, async (req, res) => {
     try {

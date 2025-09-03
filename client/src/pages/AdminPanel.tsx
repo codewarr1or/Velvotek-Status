@@ -15,7 +15,8 @@ import {
   RotateCcw,
   LogOut,
   Wifi,
-  WifiOff 
+  WifiOff,
+  Cog
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import type { Service } from '@shared/schema';
@@ -35,12 +36,13 @@ export default function AdminPanel() {
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const [vpsProcesses, setVpsProcesses] = useState<any>(null);
 
   // Check authentication on mount
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
     const userStr = localStorage.getItem('adminUser');
-    
+
     if (!token || !userStr) {
       navigate('/admin/login');
       return;
@@ -94,7 +96,7 @@ export default function AdminPanel() {
       }
 
       const result = await response.json();
-      
+
       toast({
         title: result.success ? 'Success' : 'Error',
         description: result.message,
@@ -113,6 +115,57 @@ export default function AdminPanel() {
       });
     }
   };
+
+  // Fetch VPS status and processes
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+
+    const fetchVpsStatus = async () => {
+      try {
+        const response = await fetch('/api/admin/vps/status', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const status = await response.json();
+          // Ensure status is of type VPSStatus
+          setVpsStatus(status as VPSStatus); 
+        } else {
+          setVpsStatus({ connected: false }); // Set to disconnected if fetch fails
+        }
+      } catch (error) {
+        console.error('Failed to fetch VPS status:', error);
+        setVpsStatus({ connected: false }); // Set to disconnected on error
+      }
+    };
+
+    const fetchVpsProcesses = async () => {
+      try {
+        const response = await fetch('/api/admin/vps/processes?limit=50', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setVpsProcesses(data);
+        } else {
+          setVpsProcesses({ connectionActive: false }); // Indicate connection is not active
+        }
+      } catch (error) {
+        console.error('Failed to fetch VPS processes:', error);
+        setVpsProcesses({ connectionActive: false }); // Indicate connection is not active on error
+      }
+    };
+
+    fetchVpsStatus();
+    fetchVpsProcesses();
+    const vpsInterval = setInterval(() => {
+      fetchVpsStatus();
+      fetchVpsProcesses();
+    }, 10000);
+
+    return () => clearInterval(vpsInterval);
+  }, []);
+
 
   if (!adminUser) {
     return (
@@ -138,7 +191,7 @@ export default function AdminPanel() {
                 <p className="text-muted-foreground">Dozzie Develop Status Administration</p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <span className="text-sm font-mono">
                 Welcome, <span className="text-primary">{adminUser.username}</span>
@@ -168,7 +221,7 @@ export default function AdminPanel() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
+
           {/* VPS Connection Status */}
           <Card className="terminal-border">
             <CardHeader>
@@ -201,7 +254,7 @@ export default function AdminPanel() {
                     )}
                   </Badge>
                 </div>
-                
+
                 {vpsStatus?.host && (
                   <>
                     <div className="flex items-center justify-between">
@@ -241,14 +294,14 @@ export default function AdminPanel() {
                     {services.length}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-mono">Operational</span>
                   <Badge variant="default" className="font-mono">
                     {services.filter(s => s.status === 'operational').length}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-mono">Issues</span>
                   <Badge variant="destructive" className="font-mono">
@@ -285,7 +338,7 @@ export default function AdminPanel() {
                   <Server className="h-4 w-4 mr-2" />
                   Discover Services
                 </Button>
-                
+
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -300,6 +353,77 @@ export default function AdminPanel() {
             </CardContent>
           </Card>
         </div>
+
+        {/* VPS Processes */}
+        <Card className="terminal-border lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2 font-mono">
+              <Activity className="h-5 w-5" />
+              <span>VPS Processes</span>
+              {vpsProcesses && (
+                <Badge variant="outline" className="ml-2">
+                  {vpsProcesses.totalProcesses} total
+                </Badge>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Real-time processes running on the VPS
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {vpsProcesses?.connectionActive ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2 flex items-center">
+                      <Cog className="h-4 w-4 mr-2" />
+                      Active Services ({vpsProcesses.services?.length || 0})
+                    </h4>
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {vpsProcesses.services?.slice(0, 8).map((service: any) => (
+                        <div key={service.id} className="flex items-center justify-between text-xs bg-muted/50 rounded px-2 py-1">
+                          <span className="font-mono">{service.name}</span>
+                          <Badge 
+                            variant={service.status === 'operational' ? 'default' : 'destructive'}
+                            className="text-xs"
+                          >
+                            {service.status}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-semibold mb-2 flex items-center">
+                      <Activity className="h-4 w-4 mr-2" />
+                      Top Processes by CPU
+                    </h4>
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {vpsProcesses.processes?.slice(0, 8).map((process: any) => (
+                        <div key={process.pid} className="flex items-center justify-between text-xs bg-muted/50 rounded px-2 py-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-muted-foreground w-12">{process.pid}</span>
+                            <span className="font-mono truncate w-20">{process.name}</span>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-muted-foreground">{process.memory}</span>
+                            <span className="text-xs font-medium">{process.cpuUsage.toFixed(1)}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <WifiOff className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+                <p className="text-muted-foreground">VPS connection not active</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Service Management */}
         <Card className="terminal-border mt-6">
@@ -330,12 +454,12 @@ export default function AdminPanel() {
                           {service.status}
                         </Badge>
                       </div>
-                      
+
                       <div className="text-sm text-muted-foreground space-y-1">
                         <div>Response: {service.responseTime}ms</div>
                         <div>Uptime: {service.uptime}%</div>
                       </div>
-                      
+
                       <div className="flex space-x-1">
                         <Button
                           size="sm"
