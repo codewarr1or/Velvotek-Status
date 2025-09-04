@@ -1,6 +1,6 @@
 # Overview
 
-This project is a real-time system monitoring dashboard built with React, Express, and WebSockets. It provides a terminal-style interface that displays live system metrics, service status monitoring, process information, and incident tracking. The application mimics a classic Unix system monitor aesthetic with dark themes and monospace fonts, featuring auto-refreshing data and real-time updates via WebSocket connections.
+This project is Velvotek Status, a real-time system monitoring dashboard built with React, Express, and WebSockets. It provides a terminal-style interface that displays live system metrics, service status monitoring, process information, and incident tracking. The application mimics a classic Unix system monitor aesthetic with dark themes and monospace fonts, featuring auto-refreshing data and real-time updates via WebSocket connections.
 
 # User Preferences
 

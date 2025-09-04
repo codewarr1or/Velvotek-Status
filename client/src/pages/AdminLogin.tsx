@@ -153,7 +153,7 @@ export default function AdminLogin() {
         {/* Terminal-style footer */}
         <div className="mt-6 text-center text-xs font-mono text-muted-foreground">
           <div className="border border-border/30 bg-card/20 p-2 rounded">
-            [SECURE] Administrative access portal • Dozzie Develop Status
+            [SECURE] Administrative access portal • Velvotek Status
           </div>
         </div>
       </div>

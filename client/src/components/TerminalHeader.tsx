@@ -12,7 +12,7 @@ export default function TerminalHeader({ lastUpdated, totalUptime, isConnected }
           <div className="flex items-center space-x-2">
             <span className="text-primary font-bold text-lg">╭─</span>
             <h1 className="text-xl font-bold text-primary terminal-glow" data-testid="header-title">
-              Dozzie Develop Status
+              Velvotek Status
             </h1>
             <span className="text-primary font-bold text-lg">─╮</span>
           </div>

@@ -1,4 +1,4 @@
-# Download & Package Guide - System Monitoring Dashboard
+# Download & Package Guide - Velvotek Status
 
 ## For the Current User: How to Package This for Download
 
@@ -16,7 +16,7 @@
 ### Method 2: Create a Clean Export
 If you want to create a completely fresh package:
 
-1. **Create a new folder** called `system-monitoring-dashboard`
+1. **Create a new folder** called `velvotek-status`
 2. **Copy these directories and files**:
    ```
    client/                  # Complete React frontend
@@ -79,7 +79,7 @@ If the automated script doesn't work:
 
 ## What's Included
 
-✅ **Real-time System Monitoring Dashboard**
+✅ **Velvotek Status - Real-time System Monitoring**
 - Live CPU, memory, network metrics
 - Service status tracking with uptime
 - Process monitoring and management

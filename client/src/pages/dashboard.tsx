@@ -94,7 +94,7 @@ export default function Dashboard() {
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-xs text-muted-foreground">
               <div className="flex items-center space-x-4">
-                <span>System: <span className="text-primary">Dozzie Develop Infrastructure</span></span>
+                <span>System: <span className="text-primary">Velvotek Infrastructure</span></span>
                 <span>|</span>
                 <span>Region: <span className="text-accent">Global</span></span>
                 <span>|</span>

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Setting up System Monitoring Dashboard for local hosting..."
+echo "Setting up Velvotek Status for local hosting..."
 echo "============================================================"
 
 # Check if Node.js is installed

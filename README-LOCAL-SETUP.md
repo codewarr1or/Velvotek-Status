@@ -1,6 +1,6 @@
-# System Monitoring Dashboard - Local Setup
+# Velvotek Status - Local Setup
 
-This is a real-time system monitoring dashboard with a terminal-style interface. It features live system metrics, service status monitoring, process information, and incident tracking.
+This is Velvotek Status, a real-time system monitoring dashboard with a terminal-style interface. It features live system metrics, service status monitoring, process information, and incident tracking.
 
 ## Technologies Used
 

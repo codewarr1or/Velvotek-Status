@@ -192,7 +192,7 @@ export default function AdminPanel() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold font-mono">Admin Panel</h1>
-                <p className="text-muted-foreground">Dozzie Develop Status Administration</p>
+                <p className="text-muted-foreground">Velvotek Status Administration</p>
               </div>
             </div>
 
