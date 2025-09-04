@@ -107,9 +107,9 @@ If not configured, the application will use simulated data for demonstration pur
 └── README-LOCAL-SETUP.md # This file
 ```
 
-## Custom Domain Setup (velvotek.xyz)
+## Custom Domain Setup (status.velvotek.xyz)
 
-To set up a custom domain like `velvotek.xyz` for your Velvotek Status dashboard, we recommend using Cloudflare for the best experience.
+To set up a custom subdomain like `status.velvotek.xyz` for your Velvotek Status dashboard, we recommend using Cloudflare for the best experience.
 
 ### Prerequisites for Custom Domain
 - A registered domain name (e.g., velvotek.xyz)
@@ -130,17 +130,17 @@ Cloudflare provides free SSL, DDoS protection, CDN, and easy DNS management.
 
 2. **Configure DNS records** in Cloudflare dashboard:
    ```
-   # A record pointing to your server's public IP
+   # A record for status subdomain pointing to your server's public IP
    Type: A
-   Name: @ (or velvotek.xyz)
+   Name: status
    IPv4 address: YOUR_SERVER_IP
    Proxy status: Proxied (orange cloud) ✅
    TTL: Auto
 
-   # Optional: WWW subdomain
-   Type: CNAME  
-   Name: www
-   Target: velvotek.xyz
+   # Optional: Root domain redirect (if you want velvotek.xyz to redirect to status.velvotek.xyz)
+   Type: A
+   Name: @ (or velvotek.xyz)
+   IPv4 address: YOUR_SERVER_IP
    Proxy status: Proxied (orange cloud) ✅
    TTL: Auto
    ```
@@ -170,14 +170,14 @@ sudo yum install nginx
 #### Configure Nginx for Cloudflare
 Create configuration file:
 ```bash
-sudo nano /etc/nginx/sites-available/velvotek.xyz
+sudo nano /etc/nginx/sites-available/status.velvotek.xyz
 ```
 
 Add this Cloudflare-optimized configuration:
 ```nginx
 server {
     listen 80;
-    server_name velvotek.xyz www.velvotek.xyz;
+    server_name status.velvotek.xyz;
 
     # Cloudflare real IP restoration
     set_real_ip_from 103.21.244.0/22;
@@ -233,7 +233,7 @@ server {
 
 #### Enable the site
 ```bash
-sudo ln -s /etc/nginx/sites-available/velvotek.xyz /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/status.velvotek.xyz /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 sudo systemctl enable nginx
@@ -244,7 +244,7 @@ sudo systemctl enable nginx
 #### Page Rules (Optional but recommended)
 In Cloudflare dashboard → Page Rules, add:
 ```
-URL: velvotek.xyz/api/*
+URL: status.velvotek.xyz/api/*
 Settings: Cache Level = Bypass
 ```
 
@@ -260,10 +260,11 @@ Settings: Cache Level = Bypass
 
 ### 4. Testing Cloudflare Setup
 
-1. **Check DNS**: Visit `https://velvotek.xyz` (should load with SSL)
+1. **Check DNS**: Visit `https://status.velvotek.xyz` (should load with SSL)
 2. **Verify Cloudflare**: Check response headers for `cf-ray` header
-3. **WebSocket Test**: Ensure real-time updates work
+3. **WebSocket Test**: Ensure real-time updates work at `wss://status.velvotek.xyz/ws`
 4. **SSL Test**: Use [SSL Labs](https://www.ssllabs.com/ssltest/) to verify A+ rating
+5. **Admin Panel**: Test admin access at `https://status.velvotek.xyz/admin`
 
 ## Option B: Generic DNS Provider Setup
 
@@ -275,16 +276,16 @@ If you prefer not to use Cloudflare:
 
 2. **Configure DNS records** in your domain's DNS settings:
    ```
-   # A record pointing to your server's public IP
+   # A record for status subdomain pointing to your server's public IP
    Type: A
-   Name: @ (or leave blank for root domain)
+   Name: status
    Value: YOUR_SERVER_IP
    TTL: 300 (or default)
 
-   # Optional: WWW subdomain
-   Type: CNAME  
-   Name: www
-   Value: velvotek.xyz
+   # Optional: Root domain (if you want velvotek.xyz to redirect)
+   Type: A
+   Name: @ (or leave blank for root domain)
+   Value: YOUR_SERVER_IP
    TTL: 300
    ```
 
@@ -306,14 +307,14 @@ sudo yum install nginx
 #### Configure Nginx for Velvotek Status
 Create a new Nginx configuration file:
 ```bash
-sudo nano /etc/nginx/sites-available/velvotek.xyz
+sudo nano /etc/nginx/sites-available/status.velvotek.xyz
 ```
 
 Add this configuration:
 ```nginx
 server {
     listen 80;
-    server_name velvotek.xyz www.velvotek.xyz;
+    server_name status.velvotek.xyz;
 
     location / {
         proxy_pass http://localhost:5000;
@@ -344,7 +345,7 @@ server {
 #### Enable the site
 ```bash
 # Create symbolic link to enable the site
-sudo ln -s /etc/nginx/sites-available/velvotek.xyz /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/status.velvotek.xyz /etc/nginx/sites-enabled/
 
 # Test Nginx configuration
 sudo nginx -t
@@ -367,7 +368,7 @@ sudo yum install certbot python3-certbot-nginx
 
 #### Obtain SSL certificate
 ```bash
-sudo certbot --nginx -d velvotek.xyz -d www.velvotek.xyz
+sudo certbot --nginx -d status.velvotek.xyz
 ```
 
 Follow the prompts to:
@@ -430,35 +431,34 @@ pm2 startup
 
 1. **DNS Propagation**: Check if DNS is working
    ```bash
-   nslookup velvotek.xyz
-   dig velvotek.xyz
+   nslookup status.velvotek.xyz
+   dig status.velvotek.xyz
    ```
 
-2. **HTTP Access**: Visit `http://velvotek.xyz` (should redirect to HTTPS)
+2. **HTTP Access**: Visit `http://status.velvotek.xyz` (should redirect to HTTPS)
 
-3. **HTTPS Access**: Visit `https://velvotek.xyz`
+3. **HTTPS Access**: Visit `https://status.velvotek.xyz`
 
-4. **WebSocket Connection**: Check browser console for WebSocket connection to `wss://velvotek.xyz/ws`
+4. **WebSocket Connection**: Check browser console for WebSocket connection to `wss://status.velvotek.xyz/ws`
 
-### 7. Optional: Subdomain Setup
+5. **Admin Panel**: Test admin access at `https://status.velvotek.xyz/admin`
 
-You can also set up subdomains like `status.velvotek.xyz`:
+### 7. Optional: Root Domain Redirect
 
-1. **Add DNS record**:
-   ```
-   Type: CNAME
-   Name: status
-   Value: velvotek.xyz
-   ```
+You can set up the root domain `velvotek.xyz` to redirect to `status.velvotek.xyz`:
 
-2. **Update Nginx configuration**:
+1. **Add Nginx redirect configuration**:
    ```nginx
-   server_name status.velvotek.xyz;
+   server {
+       listen 80;
+       server_name velvotek.xyz www.velvotek.xyz;
+       return 301 https://status.velvotek.xyz$request_uri;
+   }
    ```
 
-3. **Update SSL certificate**:
+2. **Update SSL certificate** to include root domain:
    ```bash
-   sudo certbot --nginx -d status.velvotek.xyz
+   sudo certbot --nginx -d status.velvotek.xyz -d velvotek.xyz -d www.velvotek.xyz
    ```
 
 ### Common Issues & Solutions
@@ -483,7 +483,7 @@ You can also set up subdomains like `status.velvotek.xyz`:
 - Check that ports 80 and 443 are open
 - Verify domain ownership
 
-Your Velvotek Status dashboard should now be accessible at `https://velvotek.xyz` with full SSL encryption and WebSocket support!
+Your Velvotek Status dashboard should now be accessible at `https://status.velvotek.xyz` with full SSL encryption and WebSocket support! The admin panel is available at `https://status.velvotek.xyz/admin`.
 
 ## Troubleshooting
 
