@@ -1,0 +1,48 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x]
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run type check
+      run: npm run check
+    
+    - name: Build application
+      run: npm run build
+      env:
+        NODE_ENV: production
+    
+    - name: Test build artifacts
+      run: |
+        ls -la dist/
+        test -f dist/index.js
+        test -d dist/public
+    
+    # Add your deployment steps here based on your hosting provider
+    # Examples:
+    # - Deploy to DigitalOcean App Platform
+    # - Deploy to Railway
+    # - Deploy to Render
+    # - Deploy to your own VPS via SSH
