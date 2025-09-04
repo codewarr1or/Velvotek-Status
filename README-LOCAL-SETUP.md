@@ -109,7 +109,7 @@ If not configured, the application will use simulated data for demonstration pur
 
 ## Custom Domain Setup (velvotek.xyz)
 
-To set up a custom domain like `velvotek.xyz` for your Velvotek Status dashboard, follow these steps:
+To set up a custom domain like `velvotek.xyz` for your Velvotek Status dashboard, we recommend using Cloudflare for the best experience.
 
 ### Prerequisites for Custom Domain
 - A registered domain name (e.g., velvotek.xyz)
@@ -117,9 +117,161 @@ To set up a custom domain like `velvotek.xyz` for your Velvotek Status dashboard
 - SSH access to your server
 - Basic Linux/server administration knowledge
 
+## Option A: Cloudflare Setup (Recommended)
+
+Cloudflare provides free SSL, DDoS protection, CDN, and easy DNS management.
+
+### 1. Cloudflare Domain Setup
+
+1. **Register your domain** through Cloudflare or transfer an existing domain:
+   - Go to [Cloudflare](https://cloudflare.com)
+   - Create an account and add your domain
+   - If domain is registered elsewhere, change nameservers to Cloudflare's
+
+2. **Configure DNS records** in Cloudflare dashboard:
+   ```
+   # A record pointing to your server's public IP
+   Type: A
+   Name: @ (or velvotek.xyz)
+   IPv4 address: YOUR_SERVER_IP
+   Proxy status: Proxied (orange cloud) ✅
+   TTL: Auto
+
+   # Optional: WWW subdomain
+   Type: CNAME  
+   Name: www
+   Target: velvotek.xyz
+   Proxy status: Proxied (orange cloud) ✅
+   TTL: Auto
+   ```
+
+3. **SSL/TLS Configuration**:
+   - Go to SSL/TLS → Overview
+   - Set encryption mode to **"Full (strict)"** for maximum security
+   - Go to SSL/TLS → Edge Certificates
+   - Enable **"Always Use HTTPS"**
+   - Enable **"HTTP Strict Transport Security (HSTS)"**
+
+### 2. Cloudflare-Optimized Server Setup
+
+Since Cloudflare handles SSL termination, your server configuration is simpler:
+
+#### Install Nginx
+```bash
+# Ubuntu/Debian
+sudo apt update
+sudo apt install nginx
+
+# CentOS/RHEL
+sudo yum install epel-release
+sudo yum install nginx
+```
+
+#### Configure Nginx for Cloudflare
+Create configuration file:
+```bash
+sudo nano /etc/nginx/sites-available/velvotek.xyz
+```
+
+Add this Cloudflare-optimized configuration:
+```nginx
+server {
+    listen 80;
+    server_name velvotek.xyz www.velvotek.xyz;
+
+    # Cloudflare real IP restoration
+    set_real_ip_from 103.21.244.0/22;
+    set_real_ip_from 103.22.200.0/22;
+    set_real_ip_from 103.31.4.0/22;
+    set_real_ip_from 104.16.0.0/13;
+    set_real_ip_from 104.24.0.0/14;
+    set_real_ip_from 108.162.192.0/18;
+    set_real_ip_from 131.0.72.0/22;
+    set_real_ip_from 141.101.64.0/18;
+    set_real_ip_from 162.158.0.0/15;
+    set_real_ip_from 172.64.0.0/13;
+    set_real_ip_from 173.245.48.0/20;
+    set_real_ip_from 188.114.96.0/20;
+    set_real_ip_from 190.93.240.0/20;
+    set_real_ip_from 197.234.240.0/22;
+    set_real_ip_from 198.41.128.0/17;
+    real_ip_header CF-Connecting-IP;
+
+    location / {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+        
+        # Cloudflare headers
+        proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;
+        proxy_set_header CF-Ray $http_cf_ray;
+        proxy_set_header CF-Visitor $http_cf_visitor;
+    }
+
+    # WebSocket support for real-time updates
+    location /ws {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Cloudflare headers for WebSockets
+        proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;
+    }
+}
+```
+
+#### Enable the site
+```bash
+sudo ln -s /etc/nginx/sites-available/velvotek.xyz /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl restart nginx
+sudo systemctl enable nginx
+```
+
+### 3. Cloudflare Security & Performance
+
+#### Page Rules (Optional but recommended)
+In Cloudflare dashboard → Page Rules, add:
+```
+URL: velvotek.xyz/api/*
+Settings: Cache Level = Bypass
+```
+
+#### Firewall Rules (Optional)
+- Go to Security → WAF
+- Enable "OWASP Core Ruleset"
+- Add custom rules if needed
+
+#### Speed Optimization
+- Go to Speed → Optimization
+- Enable "Auto Minify" for CSS, HTML, JS
+- Enable "Rocket Loader" for faster JavaScript loading
+
+### 4. Testing Cloudflare Setup
+
+1. **Check DNS**: Visit `https://velvotek.xyz` (should load with SSL)
+2. **Verify Cloudflare**: Check response headers for `cf-ray` header
+3. **WebSocket Test**: Ensure real-time updates work
+4. **SSL Test**: Use [SSL Labs](https://www.ssllabs.com/ssltest/) to verify A+ rating
+
+## Option B: Generic DNS Provider Setup
+
+If you prefer not to use Cloudflare:
+
 ### 1. Domain Registration & DNS Configuration
 
-1. **Register your domain** through any domain registrar (Namecheap, GoDaddy, Cloudflare, etc.)
+1. **Register your domain** through any domain registrar (Namecheap, GoDaddy, etc.)
 
 2. **Configure DNS records** in your domain's DNS settings:
    ```
