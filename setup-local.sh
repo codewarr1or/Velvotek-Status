@@ -36,6 +36,19 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Fix Windows compatibility by updating package.json scripts
+echo "✓ Fixing Windows compatibility..."
+if command -v node &> /dev/null; then
+    node -e "
+        const fs = require('fs');
+        const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+        pkg.scripts.dev = 'cross-env NODE_ENV=development tsx server/index.ts';
+        pkg.scripts.start = 'cross-env NODE_ENV=production node dist/index.js';
+        fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+        console.log('  Package.json scripts updated for cross-platform compatibility');
+    "
+fi
+
 echo ""
 echo "Setup complete! 🎉"
 echo ""

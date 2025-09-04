@@ -34,6 +34,31 @@ mv vite.config.local.ts vite.config.ts
 npm install
 ```
 
+### 4. Windows Compatibility Fix
+If you're on Windows and get `'NODE_ENV' is not recognized` error, run this command to fix it:
+
+```bash
+# Option 1: Use the automated setup script
+chmod +x setup-local.sh
+./setup-local.sh
+
+# Option 2: Manual fix - Install cross-env and update scripts
+npm install cross-env
+```
+
+Then manually update your `package.json` scripts section to:
+```json
+{
+  "scripts": {
+    "dev": "cross-env NODE_ENV=development tsx server/index.ts",
+    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "start": "cross-env NODE_ENV=production node dist/index.js",
+    "check": "tsc",
+    "db:push": "drizzle-kit push"
+  }
+}
+```
+
 ### 4. Start Development Server
 ```bash
 npm run dev
